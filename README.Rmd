@@ -1,0 +1,101 @@
+---
+title: "Notes on R"
+author: "André Veríssimo"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Benchmarking parallel methods with `cor`
+
+### Functions to build dataset
+
+```{r}
+library(futile.logger)
+
+genData <- function(reps = 100, sample.size = 1000) {
+  genDataAux <- function(template = runif(1000), correlation = 1) {
+    xdata <- array(0, length(template))
+    correlated.ixs <- template < correlation
+    xdata[correlated.ixs] <- template[correlated.ixs] + .0005 * runif(length(template[correlated.ixs]))
+    xdata[!correlated.ixs] <- template[!correlated.ixs] + .05 * rnorm(length(template[!correlated.ixs]))
+    return(xdata)
+  }
+  
+  template <- runif(sample.size)
+  dat <- sapply(seq(reps), function(e) {genDataAux(template , correlation = abs(.3 + runif(1))) })
+  #
+  flog.info('Size of generated data:', dim(dat), capture = T)
+  return(list(dat = dat, template = template)) 
+}
+
+my.fun <- function(dat.ix) {
+  cor(dat$template, dat$dat[,1], method = 'pearson')
+}
+```
+
+### Setting up common benchmark parameters
+
+```{r}
+library(microbenchmark)
+ntimes <- 10
+
+dat <- genData(reps = 1, sample.size = 1000)
+reps <- 100000;
+```
+
+### Benchmark Xapply functions
+
+```{r}
+microbenchmark(
+    lapply(1:reps, my.fun)
+  , sapply(1:reps, my.fun)
+  , vapply(1:reps, my.fun, array(double(0), 1))
+  , times = ntimes)
+
+```
+
+### Benchmark different combinations of mcapply
+
+```{r}
+library(parallel)
+microbenchmark(
+    mclapply(1:reps, my.fun, mc.cores = 4)
+  , mclapply(1:reps, my.fun, mc.cores = 3)
+  , mclapply(1:reps, my.fun, mc.cores = 2)
+  , times = ntimes)
+```
+
+### Benchamark different combinations of foreach
+
+```{r}
+library(parallel)
+library(foreach)
+library(doMC) # parallel computing
+registerDoMC(cores = 4) 
+flog.info('4 cores')
+microbenchmark(
+    foreach(el = 1:reps) %dopar% { my.fun(el) }
+  , foreach(el = 1:reps, .inorder = F ) %dopar% { my.fun(el) }
+  , foreach(el = 1:reps, .combine = 'c') %dopar% { my.fun(el) }
+  , foreach(el = 1:reps, .combine = 'c', .inorder = F ) %dopar% { my.fun(el) }
+  , foreach(el = 1:reps, .combine = 'cbind') %dopar% { my.fun(el) }
+  , foreach(el = 1:reps, .combine = 'cbind', .inorder = F ) %dopar% { my.fun(el) }
+  , times = ntimes)
+```
+
+
+### Benchmark combinations of BiocParallel  
+
+```{r}
+library(BiocParallel)
+#
+microbenchmark(
+    bplapply(1:reps, my.fun, BPPARAM = MulticoreParam(4))
+  , bplapply(1:reps, my.fun, BPPARAM = MulticoreParam(3))
+  , bplapply(1:reps, my.fun, BPPARAM = MulticoreParam(2))
+  , times = ntimes)
+```
+
