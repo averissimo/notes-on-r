@@ -40,10 +40,20 @@ my.fun <- function(dat.ix) {
 
 ```{r setup_params}
 library(microbenchmark)
-ntimes <- 10
 
+ntimes <- 10
+#
 dat <- genData(reps = 1, sample.size = 1000)
+#
 reps <- 100000;
+
+flog.info('')
+flog.info('')
+flog.info('Repeating benchmarks %d times to find statistics', ntimes)
+flog.info('  -> %d samples per variables', length(dat$template))
+flog.info('  -> %d correlations being calculated', reps)
+flog.info('')
+
 ```
 
 ### Benchmark Xapply functions
