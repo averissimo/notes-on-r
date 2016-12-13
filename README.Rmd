@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Functions to build dataset
 
-```{r}
+```{r fun_aux}
 library(futile.logger)
 
 genData <- function(reps = 100, sample.size = 1000) {
@@ -38,7 +38,7 @@ my.fun <- function(dat.ix) {
 
 ### Setting up common benchmark parameters
 
-```{r}
+```{r setup}
 library(microbenchmark)
 ntimes <- 10
 
@@ -48,7 +48,7 @@ reps <- 100000;
 
 ### Benchmark Xapply functions
 
-```{r}
+```{r xapply}
 microbenchmark(
     lapply(1:reps, my.fun)
   , sapply(1:reps, my.fun)
@@ -59,7 +59,7 @@ microbenchmark(
 
 ### Benchmark different combinations of mcapply
 
-```{r}
+```{r mclapply}
 library(parallel)
 microbenchmark(
     mclapply(1:reps, my.fun, mc.cores = 4)
@@ -70,7 +70,7 @@ microbenchmark(
 
 ### Benchamark different combinations of foreach
 
-```{r}
+```{r foreach}
 library(parallel)
 library(foreach)
 library(doMC) # parallel computing
@@ -89,7 +89,7 @@ microbenchmark(
 
 ### Benchmark combinations of BiocParallel  
 
-```{r}
+```{r bioc_parallel}
 library(BiocParallel)
 #
 microbenchmark(
