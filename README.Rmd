@@ -38,7 +38,7 @@ my.fun <- function(dat.ix) {
 
 ### Setting up common benchmark parameters
 
-```{r setup}
+```{r setup_params}
 library(microbenchmark)
 ntimes <- 10
 
