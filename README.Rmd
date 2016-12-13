@@ -62,9 +62,9 @@ microbenchmark(
 ```{r mclapply}
 library(parallel)
 microbenchmark(
-    mclapply(1:reps, my.fun, mc.cores = 4)
-  , mclapply(1:reps, my.fun, mc.cores = 3)
-  , mclapply(1:reps, my.fun, mc.cores = 2)
+    mclapply(1:reps, my.fun, mc.cores = 16)
+  , mclapply(1:reps, my.fun, mc.cores = 15)
+  , mclapply(1:reps, my.fun, mc.cores = 14)
   , times = ntimes)
 ```
 
@@ -74,8 +74,8 @@ microbenchmark(
 library(parallel)
 library(foreach)
 library(doMC) # parallel computing
-registerDoMC(cores = 4) 
-flog.info('4 cores')
+registerDoMC(cores = 16) 
+flog.info('16 cores')
 microbenchmark(
     foreach(el = 1:reps) %dopar% { my.fun(el) }
   , foreach(el = 1:reps, .inorder = F ) %dopar% { my.fun(el) }
@@ -93,9 +93,9 @@ microbenchmark(
 library(BiocParallel)
 #
 microbenchmark(
-    bplapply(1:reps, my.fun, BPPARAM = MulticoreParam(4))
-  , bplapply(1:reps, my.fun, BPPARAM = MulticoreParam(3))
-  , bplapply(1:reps, my.fun, BPPARAM = MulticoreParam(2))
+    bplapply(1:reps, my.fun, BPPARAM = MulticoreParam(16))
+  , bplapply(1:reps, my.fun, BPPARAM = MulticoreParam(15))
+  , bplapply(1:reps, my.fun, BPPARAM = MulticoreParam(14))
   , times = ntimes)
 ```
 
